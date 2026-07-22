@@ -1,0 +1,30 @@
+name: Backfill 90 Projects (Manual, One-Time)
+
+on:
+  workflow_dispatch: {}   # Actions tab lo "Run workflow" button tho manual ga trigger cheyali
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180   # 90 projects * (~8s delay + few sec API/push) ki సరిపడా buffer
+    steps:
+      - name: Checkout controller repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gh
+
+      - name: Generate and push 90 projects
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GIT_USER_NAME: ${{ github.actor }}
+          GIT_USER_EMAIL: ${{ github.actor }}@users.noreply.github.com
+        run: bash scripts/backfill-90.sh
